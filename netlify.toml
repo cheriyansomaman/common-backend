@@ -5,3 +5,8 @@
   from = "/api/name"
   to = "/.netlify/functions/name"
   status = 200
+
+[[redirects]]
+  from = "/api/trigger-workflow"
+  to = "/.netlify/functions/trigger-workflow"
+  status = 200
