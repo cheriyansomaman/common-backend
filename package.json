@@ -1,0 +1,8 @@
+{
+  "name": "common-backend",
+  "version": "1.0.0",
+  "description": "Dummy API returning name JSON",
+  "scripts": {
+    "dev": "npx netlify-cli dev"
+  }
+}
