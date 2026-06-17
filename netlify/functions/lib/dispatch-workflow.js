@@ -7,7 +7,12 @@ const STATUS_STORE = "trigger-status";
 const STATUS_KEY = "last-run";
 
 function statusStore() {
-  return getStore({ name: STATUS_STORE, consistency: "strong" });
+  return getStore({
+    name: STATUS_STORE,
+    consistency: "strong",
+    siteID: process.env.SITE_ID,
+    token: process.env.NETLIFY_BLOBS_TOKEN,
+  });
 }
 
 /**
