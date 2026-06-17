@@ -39,7 +39,7 @@ exports.handler = async (event) => {
 
   let result;
   try {
-    result = await dispatchWorkflow(ref);
+    result = await dispatchWorkflow(ref, "manual");
   } catch (err) {
     return {
       statusCode: 500,

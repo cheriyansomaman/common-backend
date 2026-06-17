@@ -1,5 +1,6 @@
 [build]
   functions = "netlify/functions"
+  publish = "public"
 
 [[redirects]]
   from = "/api/name"
@@ -9,6 +10,11 @@
 [[redirects]]
   from = "/api/trigger-workflow"
   to = "/.netlify/functions/trigger-workflow"
+  status = 200
+
+[[redirects]]
+  from = "/api/trigger-status"
+  to = "/.netlify/functions/trigger-status"
   status = 200
 
 [functions."scheduled-trigger-workflow"]

@@ -1,12 +1,21 @@
+const { getStore } = require("@netlify/blobs");
+
 const OWNER = "cheriyansomaman";
 const REPO = "fifa-2026-prediction";
 const WORKFLOW_FILE = "live-sync.yml";
+const STATUS_STORE = "trigger-status";
+const STATUS_KEY = "last-run";
+
+function statusStore() {
+  return getStore({ name: STATUS_STORE, consistency: "strong" });
+}
 
 /**
  * @param {string} ref
+ * @param {"manual"|"scheduled"} source
  * @returns {Promise<{ ok: boolean, status: number, errorText?: string }>}
  */
-async function dispatchWorkflow(ref) {
+async function dispatchWorkflow(ref, source) {
   const token = process.env.GITHUB_TOKEN;
   if (!token) {
     throw new Error("GITHUB_TOKEN env var not set");
@@ -26,12 +35,33 @@ async function dispatchWorkflow(ref) {
     }
   );
 
-  if (githubResponse.status === 204) {
-    return { ok: true, status: 204 };
-  }
+  const result =
+    githubResponse.status === 204
+      ? { ok: true, status: 204 }
+      : { ok: false, status: githubResponse.status, errorText: await githubResponse.text() };
 
-  const errorText = await githubResponse.text();
-  return { ok: false, status: githubResponse.status, errorText };
+  await statusStore().setJSON(STATUS_KEY, {
+    ref,
+    source,
+    ok: result.ok,
+    status: result.status,
+    errorText: result.errorText,
+    timestamp: new Date().toISOString(),
+  });
+
+  return result;
 }
 
-module.exports = { dispatchWorkflow, DEFAULT_REF: "main", ALLOWED_REFS: ["main"] };
+/**
+ * @returns {Promise<object|null>}
+ */
+async function getLastRunStatus() {
+  return statusStore().get(STATUS_KEY, { type: "json" });
+}
+
+module.exports = {
+  dispatchWorkflow,
+  getLastRunStatus,
+  DEFAULT_REF: "main",
+  ALLOWED_REFS: ["main"],
+};

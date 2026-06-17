@@ -4,5 +4,8 @@
   "description": "Dummy API returning name JSON",
   "scripts": {
     "dev": "npx netlify-cli dev"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^10.7.9"
   }
 }

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Workflow Trigger Dashboard</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 480px; margin: 3rem auto; padding: 0 1rem; color: #222; }
+  h1 { font-size: 1.25rem; }
+  .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+  .row { display: flex; justify-content: space-between; padding: 0.25rem 0; }
+  .label { color: #666; }
+  .ok { color: #1a7f37; font-weight: 600; }
+  .fail { color: #cf222e; font-weight: 600; }
+  .muted { color: #888; font-size: 0.85rem; margin-top: 1rem; }
+</style>
+</head>
+<body>
+  <h1>Workflow Trigger Status</h1>
+  <div class="card" id="status">Loading...</div>
+  <p class="muted">Auto-refreshes every 30s.</p>
+
+  <script>
+    async function load() {
+      const el = document.getElementById("status");
+      try {
+        const res = await fetch("/api/trigger-status");
+        const { lastRun } = await res.json();
+
+        if (!lastRun) {
+          el.innerHTML = "<p>No runs recorded yet.</p>";
+          return;
+        }
+
+        el.innerHTML = `
+          <div class="row"><span class="label">Status</span><span class="${lastRun.ok ? "ok" : "fail"}">${lastRun.ok ? "OK" : "FAILED"}</span></div>
+          <div class="row"><span class="label">Source</span><span>${lastRun.source}</span></div>
+          <div class="row"><span class="label">Ref</span><span>${lastRun.ref}</span></div>
+          <div class="row"><span class="label">HTTP status</span><span>${lastRun.status}</span></div>
+          <div class="row"><span class="label">Timestamp</span><span>${new Date(lastRun.timestamp).toLocaleString()}</span></div>
+          ${lastRun.errorText ? `<div class="row"><span class="label">Error</span><span>${lastRun.errorText}</span></div>` : ""}
+        `;
+      } catch (err) {
+        el.innerHTML = "<p>Failed to load status.</p>";
+      }
+    }
+
+    load();
+    setInterval(load, 30000);
+  </script>
+</body>
+</html>

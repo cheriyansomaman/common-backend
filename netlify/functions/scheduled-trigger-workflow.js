@@ -2,7 +2,7 @@ const { dispatchWorkflow, DEFAULT_REF } = require("./lib/dispatch-workflow");
 
 exports.handler = async () => {
   try {
-    const result = await dispatchWorkflow(DEFAULT_REF);
+    const result = await dispatchWorkflow(DEFAULT_REF, "scheduled");
     if (!result.ok) {
       console.error("Scheduled dispatch failed", result.status, result.errorText);
     }
