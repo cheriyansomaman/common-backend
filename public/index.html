@@ -2,50 +2,264 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Workflow Trigger Dashboard</title>
 <style>
-  body { font-family: system-ui, sans-serif; max-width: 480px; margin: 3rem auto; padding: 0 1rem; color: #222; }
-  h1 { font-size: 1.25rem; }
-  .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
-  .row { display: flex; justify-content: space-between; padding: 0.25rem 0; }
-  .label { color: #666; }
-  .ok { color: #1a7f37; font-weight: 600; }
-  .fail { color: #cf222e; font-weight: 600; }
-  .muted { color: #888; font-size: 0.85rem; margin-top: 1rem; }
+  :root {
+    --bg-1: #0f0c29;
+    --bg-2: #302b63;
+    --bg-3: #24243e;
+    --ok: #34d399;
+    --fail: #f87171;
+    --text: #e8e8f0;
+    --muted: #9a9ab0;
+    --card-bg: rgba(255, 255, 255, 0.06);
+    --card-border: rgba(255, 255, 255, 0.12);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, system-ui, "Segoe UI", sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--bg-1), var(--bg-2), var(--bg-3));
+    background-size: 200% 200%;
+    animation: gradientShift 14s ease infinite;
+    color: var(--text);
+  }
+
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .wrap { width: 100%; max-width: 460px; padding: 1.5rem; }
+
+  h1 {
+    font-size: 1.4rem;
+    margin: 0 0 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 1.25rem; }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    transition: transform 0.2s ease;
+  }
+
+  .card:hover { transform: translateY(-2px); }
+
+  .badge-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot.ok { background: var(--ok); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6); animation: pulse 1.8s infinite; }
+  .dot.fail { background: var(--fail); box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.6); animation: pulse-fail 1.8s infinite; }
+  .dot.unknown { background: var(--muted); }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.55); }
+    70% { box-shadow: 0 0 0 10px rgba(52, 211, 153, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+  }
+
+  @keyframes pulse-fail {
+    0% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.55); }
+    70% { box-shadow: 0 0 0 10px rgba(248, 113, 113, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0); }
+  }
+
+  .status-text { font-size: 1.1rem; font-weight: 600; }
+  .status-text.ok { color: var(--ok); }
+  .status-text.fail { color: var(--fail); }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--card-border);
+    font-size: 0.92rem;
+  }
+
+  .row:last-child { border-bottom: none; }
+  .label { color: var(--muted); }
+  .value { font-weight: 500; text-align: right; max-width: 60%; word-break: break-word; }
+
+  .error-box {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 10px;
+    background: rgba(248, 113, 113, 0.12);
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    font-size: 0.8rem;
+    color: #fecaca;
+    white-space: pre-wrap;
+  }
+
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .refresh-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--card-border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: background 0.15s ease;
+  }
+
+  .refresh-btn:hover { background: rgba(255, 255, 255, 0.2); }
+  .refresh-btn:active { transform: scale(0.96); }
+
+  .refresh-btn svg {
+    width: 14px;
+    height: 14px;
+    transition: transform 0.4s ease;
+  }
+
+  .refresh-btn.spinning svg { animation: spin 0.6s linear; }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .skeleton {
+    height: 14px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.16) 37%, rgba(255,255,255,0.06) 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
+  }
+
+  .empty { color: var(--muted); text-align: center; padding: 1rem 0; font-size: 0.9rem; }
 </style>
 </head>
 <body>
-  <h1>Workflow Trigger Status</h1>
-  <div class="card" id="status">Loading...</div>
-  <p class="muted">Auto-refreshes every 30s.</p>
+  <div class="wrap">
+    <h1>⚡ Workflow Trigger</h1>
+    <div class="subtitle">Live status of the GitHub Actions dispatcher</div>
+
+    <div class="card" id="status">
+      <div class="skeleton" style="width: 60%; margin-bottom: 0.75rem;"></div>
+      <div class="skeleton" style="width: 90%; margin-bottom: 0.5rem;"></div>
+      <div class="skeleton" style="width: 75%;"></div>
+    </div>
+
+    <div class="footer">
+      <span id="next-refresh">Refreshing in 30s</span>
+      <button class="refresh-btn" id="refresh-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12a9 9 0 1 1-2.64-6.36" stroke-linecap="round" />
+          <path d="M21 3v6h-6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </div>
 
   <script>
+    const REFRESH_MS = 30000;
+    const statusEl = document.getElementById("status");
+    const refreshBtn = document.getElementById("refresh-btn");
+    const nextRefreshEl = document.getElementById("next-refresh");
+    let countdown = REFRESH_MS / 1000;
+
+    function timeAgo(iso) {
+      const diffSec = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+      if (diffSec < 60) return `${diffSec}s ago`;
+      if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+      return `${Math.floor(diffSec / 3600)}h ago`;
+    }
+
+    function render(lastRun) {
+      if (!lastRun) {
+        statusEl.innerHTML = `<div class="empty">No runs recorded yet.<br/>Trigger the workflow or wait for the scheduler.</div>`;
+        return;
+      }
+
+      const okClass = lastRun.ok ? "ok" : "fail";
+      const label = lastRun.ok ? "OK" : "FAILED";
+
+      statusEl.innerHTML = `
+        <div class="badge-row">
+          <span class="dot ${okClass}"></span>
+          <span class="status-text ${okClass}">${label}</span>
+        </div>
+        <div class="row"><span class="label">Source</span><span class="value">${lastRun.source}</span></div>
+        <div class="row"><span class="label">Ref</span><span class="value">${lastRun.ref}</span></div>
+        <div class="row"><span class="label">HTTP status</span><span class="value">${lastRun.status}</span></div>
+        <div class="row"><span class="label">Last run</span><span class="value" title="${new Date(lastRun.timestamp).toLocaleString()}">${timeAgo(lastRun.timestamp)}</span></div>
+        ${lastRun.errorText ? `<div class="error-box">${lastRun.errorText}</div>` : ""}
+      `;
+    }
+
     async function load() {
-      const el = document.getElementById("status");
+      refreshBtn.classList.add("spinning");
       try {
         const res = await fetch("/api/trigger-status");
         const { lastRun } = await res.json();
-
-        if (!lastRun) {
-          el.innerHTML = "<p>No runs recorded yet.</p>";
-          return;
-        }
-
-        el.innerHTML = `
-          <div class="row"><span class="label">Status</span><span class="${lastRun.ok ? "ok" : "fail"}">${lastRun.ok ? "OK" : "FAILED"}</span></div>
-          <div class="row"><span class="label">Source</span><span>${lastRun.source}</span></div>
-          <div class="row"><span class="label">Ref</span><span>${lastRun.ref}</span></div>
-          <div class="row"><span class="label">HTTP status</span><span>${lastRun.status}</span></div>
-          <div class="row"><span class="label">Timestamp</span><span>${new Date(lastRun.timestamp).toLocaleString()}</span></div>
-          ${lastRun.errorText ? `<div class="row"><span class="label">Error</span><span>${lastRun.errorText}</span></div>` : ""}
-        `;
+        render(lastRun);
       } catch (err) {
-        el.innerHTML = "<p>Failed to load status.</p>";
+        statusEl.innerHTML = `<div class="empty">Failed to load status.</div>`;
+      } finally {
+        setTimeout(() => refreshBtn.classList.remove("spinning"), 400);
       }
     }
 
+    refreshBtn.addEventListener("click", () => {
+      countdown = REFRESH_MS / 1000;
+      load();
+    });
+
+    setInterval(() => {
+      countdown -= 1;
+      if (countdown <= 0) {
+        countdown = REFRESH_MS / 1000;
+        load();
+      }
+      nextRefreshEl.textContent = `Refreshing in ${countdown}s`;
+    }, 1000);
+
     load();
-    setInterval(load, 30000);
   </script>
 </body>
 </html>
