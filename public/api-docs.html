@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>API Docs - common-backend</title>
+<link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.32.6/swagger-ui.css" integrity="sha384-9Q2fpS+xeS4ffJy6CagnwoUl+4ldAYhOs9pgZuEKxypVModhmZFzeMlvVsAjf7uT" crossorigin="anonymous" />
+<style>
+  body { margin: 0; background: #1b1b1b; }
+  .topbar-link { display: block; padding: 0.6rem 1rem; background: #0f0c29; color: #e8e8f0; font-family: -apple-system, system-ui, sans-serif; font-size: 0.85rem; text-decoration: none; }
+  .topbar-link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+  <a class="topbar-link" href="/">&larr; Back to dashboard</a>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@5.32.6/swagger-ui-bundle.js" integrity="sha384-EYdOaiRwn44zNjrw+Tfs06qYz9BGQVo2f4/pLY5i7VorbjnZNhdplAbTBk8FXHUJ" crossorigin="anonymous"></script>
+  <script>
+    window.ui = SwaggerUIBundle({
+      url: "/openapi.json",
+      dom_id: "#swagger-ui",
+      presets: [SwaggerUIBundle.presets.apis],
+    });
+  </script>
+</body>
+</html>

@@ -17,5 +17,10 @@
   to = "/.netlify/functions/trigger-status"
   status = 200
 
+[[redirects]]
+  from = "/api/rsvp/:clientId"
+  to = "/.netlify/functions/rsvp?clientId=:clientId"
+  status = 200
+
 [functions."scheduled-trigger-workflow"]
   schedule = "*/10 * * * *"

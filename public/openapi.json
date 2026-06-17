@@ -1,0 +1,151 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "common-backend API",
+    "version": "1.0.0",
+    "description": "API contract for all Netlify function endpoints in this project."
+  },
+  "servers": [{ "url": "/" }],
+  "paths": {
+    "/api/name": {
+      "get": {
+        "summary": "Get dummy name",
+        "responses": {
+          "200": {
+            "description": "Name payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "name": { "type": "string" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trigger-workflow": {
+      "post": {
+        "summary": "Dispatch GitHub Actions workflow",
+        "security": [{ "triggerSecret": [] }],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ref": { "type": "string", "description": "Branch ref to dispatch, defaults to main", "example": "main" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workflow triggered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "triggered": { "type": "boolean" },
+                    "ref": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid ref or JSON body" },
+          "401": { "description": "Missing or invalid x-trigger-secret" },
+          "502": { "description": "GitHub dispatch failed" }
+        }
+      }
+    },
+    "/api/trigger-status": {
+      "get": {
+        "summary": "Get last workflow dispatch run status",
+        "responses": {
+          "200": {
+            "description": "Last run status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "lastRun": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "ref": { "type": "string" },
+                        "source": { "type": "string", "enum": ["manual", "scheduled"] },
+                        "ok": { "type": "boolean" },
+                        "status": { "type": "integer" },
+                        "errorText": { "type": "string", "nullable": true },
+                        "timestamp": { "type": "string", "format": "date-time" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/rsvp/{clientId}": {
+      "post": {
+        "summary": "Submit RSVP, forwards message to client's Telegram bot",
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^[A-Za-z0-9_]+$" },
+            "description": "Client identifier, maps to <CLIENT_ID>_TELEGRAM_TOKEN / <CLIENT_ID>_TELEGRAM_CHAT_ID env vars",
+            "example": "TOM"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "message"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "message": { "type": "string", "enum": ["Comming", "Not comming"] },
+                  "numberOfPeople": { "type": "integer", "minimum": 1 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RSVP sent to Telegram",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "sent": { "type": "boolean" } } }
+              }
+            }
+          },
+          "400": { "description": "Invalid client id or RSVP body" },
+          "500": { "description": "Telegram config missing for client" },
+          "502": { "description": "Telegram send failed" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "triggerSecret": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-trigger-secret"
+      }
+    }
+  }
+}
