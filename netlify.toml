@@ -10,3 +10,6 @@
   from = "/api/trigger-workflow"
   to = "/.netlify/functions/trigger-workflow"
   status = 200
+
+[functions."scheduled-trigger-workflow"]
+  schedule = "*/10 * * * *"

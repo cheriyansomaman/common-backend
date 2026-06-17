@@ -1,8 +1,4 @@
-const OWNER = "cheriyansomaman";
-const REPO = "fifa-2026-prediction";
-const WORKFLOW_FILE = "live-sync.yml";
-const DEFAULT_REF = "main";
-const ALLOWED_REFS = ["main"];
+const { dispatchWorkflow, DEFAULT_REF, ALLOWED_REFS } = require("./lib/dispatch-workflow");
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -18,14 +14,6 @@ exports.handler = async (event) => {
     return {
       statusCode: 401,
       body: JSON.stringify({ error: "Unauthorized" }),
-    };
-  }
-
-  const token = process.env.GITHUB_TOKEN;
-  if (!token) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "GITHUB_TOKEN env var not set" }),
     };
   }
 
@@ -49,29 +37,24 @@ exports.handler = async (event) => {
     };
   }
 
-  const githubResponse = await fetch(
-    `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${WORKFLOW_FILE}/dispatches`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "netlify-function",
-      },
-      body: JSON.stringify({ ref }),
-    }
-  );
+  let result;
+  try {
+    result = await dispatchWorkflow(ref);
+  } catch (err) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: err.message }),
+    };
+  }
 
-  if (githubResponse.status === 204) {
+  if (result.ok) {
     return {
       statusCode: 200,
       body: JSON.stringify({ triggered: true, ref }),
     };
   }
 
-  const errorText = await githubResponse.text();
-  console.error("GitHub dispatch failed", githubResponse.status, errorText);
+  console.error("GitHub dispatch failed", result.status, result.errorText);
   return {
     statusCode: 502,
     body: JSON.stringify({ error: "Failed to trigger workflow" }),
